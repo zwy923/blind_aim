@@ -10,7 +10,6 @@ import win32con
 #移动鼠标位置
 def move_mouse(x,y):
     pyautogui.moveTo(x,y)
-
 # Load the YOLOv5 model
 model = yolov5.load('yolov5s.pt')
 aim_mouse = win32api.GetAsyncKeyState(win32con.VK_RBUTTON)

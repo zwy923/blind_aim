@@ -1,5 +1,6 @@
 # blind_aim
 
+For learning and communication only.
 微自瞄
 准星需要调整到一个点，解压后直接运行main.py
 效果还不是很好

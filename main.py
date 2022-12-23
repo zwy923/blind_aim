@@ -75,13 +75,13 @@ def aim():
             ymin=data['ymin']
             xmax=data['xmax']
             ymax=data['ymax']
-            xyxy=np.array([xmin+screen_x/2- window_x / 2,ymin+screen_y/2- window_y / 2,xmax+screen_x/2- window_x / 2,ymax+screen_y/2- window_y / 2])
-            xywh=xyxy2xywh(xyxy)
-            target_xywh = xywh
+            xyxy=np.array([xmin+screen_x/2-window_x/2,ymin+screen_y/2-window_y/2,xmax+screen_x/2-window_x/2,ymax+screen_y/2-window_y/2])
+            target_xywh = xyxy2xywh(xyxy)
             target_xywh_x = target_xywh[0]
             target_xywh_y = target_xywh[1]
         except IndexError:
             print("no target")
+            time.sleep(1)
         else:
             final_x = target_xywh_x
             final_y = target_xywh_y - 0.15 * target_xywh[3]

@@ -8,7 +8,9 @@ import pyautogui
 import win32api
 import win32con
 from pid import PID
+import pydirectinput
 
+pydirectinput.FAILSAFE = False
 # Load the YOLOv5 model
 model = yolov5.load('yolov5s.pt')
 
@@ -17,7 +19,7 @@ y_correction_factor = 10  # 截图位置修正， 值越大截图窗口向上
 screen_x, screen_y = 2560,1440
 window_x,window_y= 350,350
 
-pid = PID(0.005,30,-30,0.4,0.08,0)
+pid = PID(0.005,100,-100,0.4,0.08,0)
 
 screen_x_center = screen_x / 2
 screen_y_center = screen_y / 2
@@ -31,8 +33,7 @@ grab_window= (
     int(screen_x / 2 + window_x / 2),
     int(screen_y / 2 + window_y / 2 - 10))
 
-
-aim_x = 200  # aim width
+aim_x = 300  # aim width
 aim_x_left = int(screen_x_center - aim_x / 2)  # 自瞄左右侧边距
 aim_x_right = int(screen_x_center + aim_x / 2)
 
@@ -43,7 +44,7 @@ aim_y_down = int(screen_y_center + aim_y / 2 - y_correction_factor)
 
 #移动鼠标位置
 def move_mouse(x,y):
-    pyautogui.moveTo(x,y)
+    pydirectinput.move(x,y,duration=0.2)
 
 def xyxy2xywh(xyxy):
 
@@ -75,22 +76,23 @@ def aim():
             ymin=data['ymin']
             xmax=data['xmax']
             ymax=data['ymax']
-            xyxy=np.array([xmin+screen_x/2-window_x/2,ymin+screen_y/2-window_y/2,xmax+screen_x/2-window_x/2,ymax+screen_y/2-window_y/2])
+            xyxy=np.array([xmin,ymin,xmax,ymax])
             target_xywh = xyxy2xywh(xyxy)
-            target_xywh_x = target_xywh[0]
-            target_xywh_y = target_xywh[1]
+            target_xywh_x = target_xywh[0] + edge_x
+            target_xywh_y = target_xywh[1] + edge_y
         except IndexError:
             print("no target")
-            time.sleep(1)
+            time.sleep(1)   
         else:
-            final_x = target_xywh_x
-            final_y = target_xywh_y - 0.15 * target_xywh[3]
             if aim_x_left < target_xywh_x < aim_x_right and aim_y_up < target_xywh_y < aim_y_down:
-                pid_x = int(pid.calculate(final_x, 0))
-                pid_y = int(pid.calculate(final_y, 0))
+                final_x = target_xywh_x - screen_x_center
+                final_y = target_xywh_y - screen_y_center 
+                pid_x = int(pid.calculate(final_x, 0))+15
+                pid_y = int(pid.calculate(final_y, 0))+15
                 aim_mouse = win32api.GetAsyncKeyState(win32con.VK_LBUTTON)
+                print(pid_x,pid_y)
                 if(aim_mouse):
-                    move_mouse(final_x+pid_x,final_y+pid_y)
+                    move_mouse(int(pid_x),int(pid_y))
         #停止自瞄
         stop_mouse = win32api.GetAsyncKeyState(win32con.VK_RBUTTON)
         if(stop_mouse):

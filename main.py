@@ -24,12 +24,7 @@ screen_y_center = screen_y / 2
 edge_x = screen_x_center - window_x / 2
 edge_y = screen_y_center - window_y / 2
 
-
-grab_window= (
-    int(screen_x / 2 - window_x / 2),
-    int(screen_y / 2 - window_y / 2 - 10),
-    int(screen_x / 2 + window_x / 2),
-    int(screen_y / 2 + window_y / 2 - 10))
+grab_window= (int(screen_x / 2 - window_x / 2),int(screen_y / 2 - window_y / 2 - 10),int(screen_x / 2 + window_x / 2),int(screen_y / 2 + window_y / 2 - 10))
 
 aim_x = 200  # aim width
 aim_x_left = int(screen_x_center - aim_x / 2)

@@ -4,7 +4,6 @@ import numpy as np
 from PIL import ImageGrab
 import torch
 import yolov5
-import pyautogui
 import win32api
 import win32con
 from pid import PID

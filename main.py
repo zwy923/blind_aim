@@ -8,12 +8,10 @@ import win32api
 import win32con
 from pid import PID
 import pydirectinput
-
 pydirectinput.FAILSAFE = False
+
 # Load the YOLOv5 model
 model = yolov5.load('yolov5s.pt')
-
-y_correction_factor = 10  # 截图位置修正， 值越大截图窗口向上
 
 screen_x, screen_y = 2560,1440
 window_x,window_y= 350,350
@@ -34,13 +32,12 @@ grab_window= (
     int(screen_y / 2 + window_y / 2 - 10))
 
 aim_x = 200  # aim width
-aim_x_left = int(screen_x_center - aim_x / 2)  # 自瞄左右侧边距
+aim_x_left = int(screen_x_center - aim_x / 2)
 aim_x_right = int(screen_x_center + aim_x / 2)
 
 aim_y = 350  # aim width
-aim_y_up = int(screen_y_center - aim_y / 2 - y_correction_factor)  # 自瞄上下侧边距
-aim_y_down = int(screen_y_center + aim_y / 2 - y_correction_factor)
-
+aim_y_up = int(screen_y_center - aim_y / 2 - 10)
+aim_y_down = int(screen_y_center + aim_y / 2 - 10)
 
 #移动鼠标位置
 def move_mouse(x,y):
@@ -58,7 +55,6 @@ def xyxy2xywh(xyxy):
         return np.array([left, top, width, height]).astype('int')
     else:
         raise ValueError("Input shape not compatible.")
-
 
 @torch.no_grad()
 def aim():
@@ -86,8 +82,9 @@ def aim():
                 final_x = target_xywh_x - screen_x_center
                 final_y = target_xywh_y - screen_y_center 
                 pid_x = int(pid.calculate(final_x, 0))+15
-                pid_y = int(pid.calculate(final_y, 0))+ 0.21 * target_xywh[3]
+                pid_y = int(pid.calculate(final_y, 0))+ 0.25 * target_xywh[3]
                 aim_mouse = win32api.GetAsyncKeyState(win32con.VK_LBUTTON)
+                print(pid_x,pid_y)
                 if(aim_mouse):
                     move_mouse(int(pid_x),int(pid_y))
         #停止自瞄

@@ -7,7 +7,6 @@ import yolov5
 import pyautogui
 import win32api
 import win32con
-import serial
 from pid import PID
 
 # Load the YOLOv5 model
@@ -60,46 +59,38 @@ def xyxy2xywh(xyxy):
     else:
         raise ValueError("Input shape not compatible.")
 
+
 @torch.no_grad()
 def aim():
-    aim_mouse = win32api.GetAsyncKeyState(win32con.VK_RBUTTON)
     while True:
         # Capture the screen using OpenCV
         screen = cv2.cvtColor(np.array(ImageGrab.grab(grab_window)), cv2.COLOR_BGR2RGB)
         # Run object detection on the screen
         predictions = model(screen)
-        x, y = pyautogui.position()
-
         df=predictions.pandas().xyxy[0].sort_values('confidence',ascending=False)
         # Display the result
-        target_distance_list = []
-        target_xywh_list = []
         try:
             data=df[df['name'] == 'person'].iloc[0].to_dict()
             xmin=data['xmin']
             ymin=data['ymin']
             xmax=data['xmax']
             ymax=data['ymax']
-            xyxy=np.array([xmin,ymin,xmax,ymax])
+            xyxy=np.array([xmin+screen_x/2- window_x / 2,ymin+screen_y/2- window_y / 2,xmax+screen_x/2- window_x / 2,ymax+screen_y/2- window_y / 2])
             xywh=xyxy2xywh(xyxy)
             target_xywh = xywh
-            target_xywh_x = target_xywh[0] + edge_x
-            target_xywh_y = target_xywh[1] + edge_y
+            target_xywh_x = target_xywh[0]
+            target_xywh_y = target_xywh[1]
         except IndexError:
             print("no target")
         else:
+            final_x = target_xywh_x
+            final_y = target_xywh_y - 0.15 * target_xywh[3]
             if aim_x_left < target_xywh_x < aim_x_right and aim_y_up < target_xywh_y < aim_y_down:
+                pid_x = int(pid.calculate(final_x, 0))
+                pid_y = int(pid.calculate(final_y, 0))
                 aim_mouse = win32api.GetAsyncKeyState(win32con.VK_LBUTTON)
-                x=(data['xmin']+data['xmax'])/2+screen_x / 2 - window_x / 2
-                y=(data['ymin']+data['ymax'])/2+screen_y / 2 - window_y / 2
-                print(x,y)
                 if(aim_mouse):
-                    final_x = target_xywh_x - screen_x_center
-                    final_y = target_xywh_y - screen_y_center - 0.30 * target_xywh[3]
-                    pid_x = int(pid.calculate(final_x, 0))
-                    pid_y = int(pid.calculate(final_y, 0))
-                    move_mouse(x,y)
-
+                    move_mouse(final_x+pid_x,final_y+pid_y)
         #停止自瞄
         stop_mouse = win32api.GetAsyncKeyState(win32con.VK_RBUTTON)
         if(stop_mouse):
